@@ -1,3 +1,6 @@
+[![CI](https://github.com/EugenePanfilov/mlproj/actions/workflows/ci.yml/badge.svg)](https://github.com/EugenePanfilov/mlproj/actions/workflows/ci.yml)
+
+
 # mlproj — минимальный продовый контур: train → artifacts → batch predict → offline monitoring → CI
 
 Проект демонстрирует “живой” контур бинарной классификации на датасете **Adult** (через `fetch_openml`):  
