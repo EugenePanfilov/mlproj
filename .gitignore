@@ -1,0 +1,55 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.eggs/
+build/
+dist/
+pip-wheel-metadata/
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# --- Virtualenv ---
+.venv/
+venv/
+ENV/
+env/
+
+# --- Jupyter ---
+.ipynb_checkpoints/
+
+# --- IDE / OS ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# --- Project outputs ---
+artifacts/
+reports/
+out.csv
+*.log
+
+# --- Local data / temp ---
+data/*
+!data/.gitkeep
+!data/sample.csv
+!data/ref.csv
+!data/curr.csv
+
+tmp/
+*.tmp
+
+# --- Secrets / env ---
+.env
+.env.*
+*.pem
+*.key
+*.crt

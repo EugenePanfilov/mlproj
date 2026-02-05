@@ -1,0 +1,30 @@
+seed: 42
+dataset: adult
+split:
+  mode: temporal_holdout   # temporal_holdout|random
+  valid_size: 0.2
+preprocessing:
+  rare_min_freq: 0.01      # categories below this frequency -> "__RARE__"
+  p2_threshold_high_card: 20
+model:
+  type: hgb               # hgb|logreg
+  params:
+    max_depth: 6
+    learning_rate: 0.06
+    max_leaf_nodes: 31
+calibration:
+  type: temperature       # temperature|platt|isotonic
+thresholding:
+  decision_threshold: 0.17
+  manual_band: [0.12, 0.22]   # reject-zone (low, high)
+costs:
+  fp: 1.0
+  fn: 5.0
+monitoring:
+  psi_bins: 10
+  psi_major: 0.25
+  adv_auc_major: 0.70
+  ece_drift_minor: 0.05
+  brier_drift_minor: 0.01
+artifacts_dir: artifacts/
+reports_dir: reports/
