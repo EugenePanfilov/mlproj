@@ -221,10 +221,20 @@ def fit_bundle(
 
     if cal_type in ("platt", "isotonic"):
         method = "sigmoid" if cal_type == "platt" else "isotonic"
-        pipe = CalibratedClassifierCV(base_estimator=base_pipe, method=method, cv=3)
+        try:
+            # sklearn >= 1.4
+            pipe = CalibratedClassifierCV(estimator=base_pipe, method=method, cv=3)
+        except TypeError:
+            # sklearn < 1.4
+            pipe = CalibratedClassifierCV(base_estimator=base_pipe, method=method, cv=3)
+
         pipe.fit(X_train, y_train)
         cal_meta = {"type": cal_type, "cv": 3}
-        fitted_pre = pipe.base_estimator.named_steps["pre"]
+
+        # у CalibratedClassifierCV базовый оцениватель лежит в estimator_ / base_estimator_
+        base_fitted = getattr(pipe, "estimator_", None) or getattr(pipe, "base_estimator_", None)
+        fitted_pre = base_fitted.named_steps["pre"] if base_fitted is not None else base_pipe.named_steps["pre"]
+
 
     elif cal_type == "temperature":
         base_pipe.fit(X_train, y_train)

@@ -4,6 +4,7 @@ from typing import Tuple
 
 import pandas as pd
 import pandera.pandas as pa
+from pandas.api.types import CategoricalDtype
 from sklearn.datasets import fetch_openml
 
 from .utils import get_logger
@@ -44,11 +45,9 @@ CAT_COLUMNS = [
 
 def adult_schema(require_target: bool) -> pa.DataFrameSchema:
     """
-    Схема для pandas DataFrame.
-
-    ВАЖНО: для категориальных колонок используем dtype=object, потому что при чтении
-    CSV pandas почти всегда даёт object (а не category). Если источник даёт category,
-    мы приводим его к object в validate_input_df (вариант B).
+    Pandera-схема входных данных (строгая по колонкам).
+    Важный принцип: категориальные признаки валидируем как `object`,
+    чтобы не зависеть от того, пришли они как pandas `category` или как строки.
     """
     cols = {
         "age": pa.Column(int, pa.Check.between(17, 99), nullable=False),
@@ -92,23 +91,21 @@ def load_adult_openml(seed: int = 42) -> Tuple[pd.DataFrame, pd.Series]:
 
 def validate_input_df(df: pd.DataFrame, require_target: bool, missing_warn_pct: float = 0.2) -> None:
     """
-    Перед валидацией приводим категориальные колонки pandas `category`
-    к dtype `object`, чтобы схема Column(object, ...) проходила без ошибок.
-
-    Это важно, потому что:
-    - OpenML может вернуть category
-    - CSV при read_csv обычно становится object
+    Валидирует входной датафрейм:
+    - приводит категориальные колонки pandas `category` к `object`, чтобы схема Column(object) проходила стабильно
+    - проверяет типы/диапазоны/обязательные колонки через pandera
+    - логирует warning, если доля пропусков в колонке превышает missing_warn_pct
     """
     # Приведение категориальных колонок к object (не ломает NaN)
     for c in CAT_COLUMNS:
-        if c in df.columns and pd.api.types.is_categorical_dtype(df[c]):
+        if c in df.columns and isinstance(df[c].dtype, CategoricalDtype):
             df[c] = df[c].astype("object")
 
     schema = adult_schema(require_target=require_target)
     try:
         schema.validate(df, lazy=True)
     except pa.errors.SchemaErrors as e:
-        # показываем первые 50 фейлов — читаемо для CLI/CI
+        # первые 50 фейлов — читаемо для CLI/CI
         raise ValueError(str(e.failure_cases.head(50))) from e
 
     miss = df.isna().mean()
