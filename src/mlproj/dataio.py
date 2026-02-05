@@ -4,7 +4,6 @@ from typing import Tuple
 
 import pandas as pd
 import pandera.pandas as pa
-from pandas.api.types import CategoricalDtype
 from sklearn.datasets import fetch_openml
 
 from .utils import get_logger
@@ -46,8 +45,9 @@ CAT_COLUMNS = [
 def adult_schema(require_target: bool) -> pa.DataFrameSchema:
     """
     Pandera-схема входных данных (строгая по колонкам).
-    Важный принцип: категориальные признаки валидируем как `object`,
-    чтобы не зависеть от того, пришли они как pandas `category` или как строки.
+    Категориальные признаки валидируем как `object`.
+    Перед валидацией приводим их к `object`, чтобы не зависеть от того,
+    пришли они как pandas `string`, `category` или обычные строки.
     """
     cols = {
         "age": pa.Column(int, pa.Check.between(17, 99), nullable=False),
@@ -91,21 +91,20 @@ def load_adult_openml(seed: int = 42) -> Tuple[pd.DataFrame, pd.Series]:
 
 def validate_input_df(df: pd.DataFrame, require_target: bool, missing_warn_pct: float = 0.2) -> None:
     """
-    Валидирует входной датафрейм:
-    - приводит категориальные колонки pandas `category` к `object`, чтобы схема Column(object) проходила стабильно
-    - проверяет типы/диапазоны/обязательные колонки через pandera
-    - логирует warning, если доля пропусков в колонке превышает missing_warn_pct
+    Валидация входного датафрейма:
+    - нормализация dtype категориальных колонок к `object` (string/category -> object)
+    - проверка схемы pandera (типы/диапазоны/обязательные колонки)
+    - warning при высокой доле пропусков
     """
-    # Приведение категориальных колонок к object (не ломает NaN)
+    # Нормализуем категориальные колонки: в CI они часто приходят как pandas "string"
     for c in CAT_COLUMNS:
-        if c in df.columns and isinstance(df[c].dtype, CategoricalDtype):
+        if c in df.columns:
             df[c] = df[c].astype("object")
 
     schema = adult_schema(require_target=require_target)
     try:
         schema.validate(df, lazy=True)
     except pa.errors.SchemaErrors as e:
-        # первые 50 фейлов — читаемо для CLI/CI
         raise ValueError(str(e.failure_cases.head(50))) from e
 
     miss = df.isna().mean()
