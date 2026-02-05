@@ -1,4 +1,4 @@
-# mlproj — minimal production contour (Adult / OpenML)
+# mlproj — ml-drift-monitor (Adult / OpenML)
 
 This repo implements a minimal but “alive” production-like contour:
 
