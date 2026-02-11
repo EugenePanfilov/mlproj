@@ -60,8 +60,8 @@ python predict.py \
 ```bash
 python monitor_run.py \
   --model-dir artifacts/LATEST \
-  --reference-csv ref.csv \
-  --current-csv curr.csv
+  --reference-csv data/ref.csv \
+  --current-csv data/curr.csv
 
 echo $?
 ```

@@ -15,5 +15,5 @@ monitor:        ## python monitor_run.py --model-dir artifacts/LATEST --referenc
 test:           ## pytest -q
 	pytest -q
 
-clean-artifacts: ## remove all artifact runs
-	rm -rf artifacts/*
+clean-artifacts: ## remove all artifact runs and reports
+	rm -rf artifacts/* reports/*
